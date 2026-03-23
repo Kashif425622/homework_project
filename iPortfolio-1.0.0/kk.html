@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Student Portal</title>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{margin:0;background:#0f172a;font-family:Segoe UI;color:white}
+.sidebar{width:260px;height:100vh;background:linear-gradient(180deg,#2563eb,#38bdf8)}
+.menu li{list-style:none;padding:12px;margin:6px;border-radius:8px;cursor:pointer}
+.menu li:hover,.active{background:rgba(255,255,255,.2)}
+.content{padding:30px}
+.card{background:#020617;border:1px solid #1e293b}
+.profile-img{width:120px;border-radius:50%;border:3px solid #38bdf8}
+label{color:#94a3b8}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script>
+const e = React.createElement;
+
+/* ================= STUDENT DATABASE ================= */
+const students = {
+ "21CSE045":{
+  password:"1234",
+  name:"Rahul Sharma",
+  course:"B.Tech CSE",
+  email:"rahul@college.edu",
+  phone:"9876543210",
+  address:"New Delhi",
+  attendance:{DSA:90,OS:82,DBMS:88,CN:80},
+  marks:{DSA:85,OS:78,DBMS:88,CN:75},
+  fees:[["Sem 1","45000","Paid"],["Sem 2","45000","Paid"],["Sem 3","48000","Pending"]],
+  transcript:[["Sem 1",8.1],["Sem 2",8.4],["Sem 3",8.7]]
+ },
+ "21CSE078":{
+  password:"abcd",
+  name:"Ananya Verma",
+  course:"B.Tech IT",
+  email:"ananya@college.edu",
+  phone:"9123456780",
+  address:"Mumbai",
+  attendance:{DSA:95,OS:88,DBMS:92,CN:85},
+  marks:{DSA:90,OS:85,DBMS:91,CN:88},
+  fees:[["Sem 1","45000","Paid"],["Sem 2","45000","Paid"]],
+  transcript:[["Sem 1",8.8],["Sem 2",9.0]]
+ }
+};
+
+/* ================= LOGIN ================= */
+function Login({onLogin}){
+ const [r,setR]=React.useState("");
+ const [p,setP]=React.useState("");
+ const [err,setErr]=React.useState("");
+
+ function check(){
+  if(students[r] && students[r].password===p) onLogin(r);
+  else setErr("Invalid Roll Number or Password");
+ }
+
+ return e("div",{className:"container col-md-4 mt-5"},
+  e("div",{className:"card p-4"},
+   e("h3",{className:"text-info text-center"},"🎓 Student Login"),
+
+   e("input",{className:"form-control mb-2",placeholder:"Roll Number",value:r,onChange:x=>setR(x.target.value)}),
+   e("input",{className:"form-control mb-2",type:"password",placeholder:"Password",value:p,onChange:x=>setP(x.target.value)}),
+
+   err && e("div",{className:"text-danger mb-2"},err),
+
+   e("button",{className:"btn btn-info w-100 mb-3",onClick:check},"Login"),
+
+   e("hr",null),
+
+   e("h6",{className:"text-center text-secondary"},"Direct Login (Demo)"),
+
+   e("button",{
+     className:"btn btn-outline-success w-100 mb-2",
+     onClick:()=>onLogin("21CSE045")
+   },"Login as Rahul Sharma"),
+
+   e("button",{
+     className:"btn btn-outline-warning w-100",
+     onClick:()=>onLogin("21CSE078")
+   },"Login as Ananya Verma")
+  )
+ );
+}
+
+/* ================= DASHBOARD ================= */
+function Dashboard({s,setPage}){
+ const avg = Object.values(s.attendance).reduce((a,b)=>a+b,0)/4;
+ return e("div",null,
+  e("h3",{className:"text-info"},"Welcome, "+s.name),
+  e("div",{className:"row mt-3"},
+   e("div",{className:"col-md-4"},
+    e("div",{className:"card p-3"},
+     e("h6",null,"Attendance"),
+     e("div",{className:"progress"},
+      e("div",{className:"progress-bar bg-success",style:{width:avg+"%"}},avg.toFixed(1)+"%")
+     )
+    )
+   ),
+   e("div",{className:"col-md-4"},
+    e("div",{className:"card p-3"},
+     e("h6",null,"CGPA"),
+     e("p",{className:"fs-4 text-info"},s.transcript.at(-1)[1])
+    )
+   ),
+   e("div",{className:"col-md-4"},
+    e("div",{className:"card p-3"},
+     e("button",{className:"btn btn-outline-info mb-2",onClick:()=>setPage("profile")},"View Profile"),
+     e("button",{className:"btn btn-outline-warning",onClick:()=>setPage("transcript")},"Transcript")
+    )
+   )
+  )
+ );
+}
+
+/* ================= PROFILE ================= */
+function Profile({s}){
+ return e("div",{className:"card p-4"},
+  e("div",{className:"text-center"},
+   e("img",{src:"https://i.pravatar.cc/150",className:"profile-img"}),
+   e("h4",{className:"text-info mt-2"},s.name),
+   e("p",null,s.course)
+  ),
+  e("p",null,e("label",null,"Email: "),s.email),
+  e("p",null,e("label",null,"Phone: "),s.phone),
+  e("p",null,e("label",null,"Address: "),s.address)
+ );
+}
+
+/* ================= ATTENDANCE ================= */
+function Attendance({s}){
+ return e("div",null,
+  e("h4",{className:"text-info"},"Attendance"),
+  Object.entries(s.attendance).map(([sub,v])=>
+   e("div",{key:sub,className:"mb-2"},
+    e("label",null,sub),
+    e("div",{className:"progress"},
+     e("div",{className:"progress-bar bg-info",style:{width:v+"%"}},v+"%")
+    )
+   )
+  )
+ );
+}
+
+/* ================= MARKS ================= */
+function Marks({s}){
+ function grade(m){return m>=90?"A+":m>=80?"A":m>=70?"B":"C"}
+ return e("div",{className:"card p-3"},
+  e("h4",{className:"text-info"},"Marks"),
+  e("table",{className:"table table-dark"},
+   e("tbody",null,
+    Object.entries(s.marks).map(([sub,m])=>
+     e("tr",{key:sub},
+      e("td",null,sub),
+      e("td",null,m),
+      e("td",{className:"text-info"},grade(m))
+     )
+    )
+   )
+  )
+ );
+}
+
+/* ================= APP ================= */
+function App(){
+ const [roll,setRoll]=React.useState(null);
+ const [page,setPage]=React.useState("dashboard");
+ if(!roll) return e(Login,{onLogin:setRoll});
+ const s=students[roll];
+ const pages={
+  dashboard:e(Dashboard,{s,setPage}),
+  profile:e(Profile,{s}),
+  attendance:e(Attendance,{s}),
+  
+  
+  marks:e(Marks,{s})
+ };
+ return e("div",{className:"d-flex"},
+  e("div",{className:"sidebar p-3"},
+   e("h4",{className:"text-center"},"Student Portal"),
+   e("ul",{className:"menu p-0"},
+    Object.keys(pages).map(p=>
+     e("li",{key:p,onClick:()=>setPage(p),className:page===p?"active":""},p.toUpperCase())
+    ),
+    e("li",{onClick:()=>setRoll(null)},"LOGOUT")
+   )
+  ),
+  e("div",{className:"content flex-fill"},pages[page])
+ );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+</script>
+</body>
+</html>

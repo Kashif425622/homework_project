@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Student Portal</title>
+
+<!-- React -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{margin:0;background:#0f172a;font-family:Segoe UI;color:white}
+.sidebar{width:260px;height:100vh;background:linear-gradient(180deg,#2563eb,#38bdf8)}
+.menu li{list-style:none;padding:12px;margin:6px;border-radius:8px;cursor:pointer}
+.menu li:hover,.active{background:rgba(255,255,255,.2)}
+.card{background:#020617;border:1px solid #1e293b}
+label{color:#94a3b8}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script>
+const e = React.createElement;
+
+/* ---------- STUDENT DATABASE ---------- */
+const studentsDB = {
+  "21CSE045": {
+    password: "1234",
+    name: "Rahul Sharma",
+    course: "B.Tech CSE",
+    email: "rahul@college.edu",
+    attendance: {DSA:90, OS:82, DBMS:88, CN:80},
+    marks: {DSA:85, OS:78, DBMS:88, CN:75},
+    cgpa: 8.4
+  },
+  "21CSE078": {
+    password: "abcd",
+    name: "Ananya Verma",
+    course: "B.Tech IT",
+    email: "ananya@college.edu",
+    attendance: {DSA:95, OS:88, DBMS:92, CN:85},
+    marks: {DSA:90, OS:85, DBMS:91, CN:88},
+    cgpa: 8.9
+  }
+};
+
+/* ---------- LOGIN ---------- */
+function Login({onLogin}){
+  const [roll,setRoll]=React.useState("");
+  const [pass,setPass]=React.useState("");
+  const [err,setErr]=React.useState("");
+
+  function handle(){
+    if(studentsDB[roll] && studentsDB[roll].password===pass){
+      onLogin(roll);
+    } else setErr("Invalid Credentials");
+  }
+
+  return e("div",{className:"container col-md-4 mt-5"},
+    e("div",{className:"card p-4"},
+      e("h3",{className:"text-info text-center"},"🎓 Student Login"),
+      e("input",{className:"form-control mb-2",placeholder:"Roll Number",onChange:x=>setRoll(x.target.value)}),
+      e("input",{className:"form-control mb-2",type:"password",placeholder:"Password",onChange:x=>setPass(x.target.value)}),
+      err && e("div",{className:"text-danger mb-2"},err),
+      e("button",{className:"btn btn-info",onClick:handle},"Login")
+    )
+  );
+}
+
+/* ---------- DASHBOARD ---------- */
+function Dashboard({student}){
+  return e("div",null,
+    e("h3",{className:"text-info"},"Welcome, "+student.name),
+    e("div",{className:"row mt-3"},
+      e("div",{className:"col-md-6"},
+        e("div",{className:"card p-3"},
+          e("h6",null,"CGPA"),
+          e("div",{className:"progress"},
+            e("div",{className:"progress-bar bg-info",style:{width:(student.cgpa*10)+"%"}},student.cgpa)
+          )
+        )
+      ),
+      e("div",{className:"col-md-6"},
+        e("div",{className:"card p-3"},
+          e("h6",null,"Email"),
+          e("p",null,student.email)
+        )
+      )
+    )
+  );
+}
+
+/* ---------- ATTENDANCE ---------- */
+function Attendance({student}){
+  return e("div",null,
+    e("h4",{className:"text-info"},"Attendance"),
+    Object.entries(student.attendance).map(([s,v])=>
+      e("div",{key:s,className:"mb-2"},
+        e("label",null,s),
+        e("div",{className:"progress"},
+          e("div",{className:"progress-bar bg-success",style:{width:v+"%"}},v+"%")
+        )
+      )
+    )
+  );
+}
+
+/* ---------- MARKS ---------- */
+function Marks({student}){
+  return e("div",{className:"card p-3"},
+    e("h4",{className:"text-info"},"Marks"),
+    e("table",{className:"table table-dark"},
+      e("tbody",null,
+        Object.entries(student.marks).map(([s,m])=>
+          e("tr",{key:s},e("td",null,s),e("td",null,m))
+        )
+      )
+    ),
+    e("button",{className:"btn btn-outline-info"},"Recalculate SGPA")
+  );
+}
+
+/* ---------- SETTINGS ---------- */
+function Settings({onLogout}){
+  return e("div",{className:"card p-3"},
+    e("h4",{className:"text-info"},"Settings"),
+    e("button",{className:"btn btn-danger mt-2",onClick:onLogout},"Logout")
+  );
+}
+
+/* ---------- APP ---------- */
+function App(){
+  const [roll,setRoll]=React.useState(null);
+  const [page,setPage]=React.useState("dashboard");
+
+  if(!roll) return e(Login,{onLogin:setRoll});
+  const student=studentsDB[roll];
+
+  const pages={
+    dashboard:e(Dashboard,{student}),
+    attendance:e(Attendance,{student}),
+    marks:e(Marks,{student}),
+    settings:e(Settings,{onLogout:()=>setRoll(null)})
+  };
+
+  return e("div",{className:"d-flex"},
+    e("div",{className:"sidebar p-3"},
+      e("h5",{className:"text-center"},"Student Portal"),
+      e("ul",{className:"menu p-0"},
+        Object.keys(pages).map(p=>
+          e("li",{key:p,onClick:()=>setPage(p),className:page===p?"active":""},p.toUpperCase())
+        )
+      )
+    ),
+    e("div",{className:"p-4 flex-fill"},pages[page])
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+</script>
+</body>
+</html>
